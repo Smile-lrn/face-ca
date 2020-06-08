@@ -1,28 +1,31 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8">
-    <title>faceapi</title>
-  </head>
-  <body>
-    <div id="app">
-      <face></face>
-    </div>
-    <script src="https://cdn.staticfile.org/vue/2.4.2/vue.min.js"></script>
-    <script src="./dist/face.js" type="module"></script>
-    <script>
-        window.onload = function (options) {
-          navigator.getUserMedia = navigator.getUserMedia ||
-            navigator.webkitGetUserMedia ||
-            navigator.mozGetUserMedia ||
-            navigator.msGetUserMedia;
 
-          if (navigator.getUserMedia) {
-            window.alert = "支持调取摄像头麦克风"
-          } else {
-            window.alert = "抱歉不支持"
-          }
-        }
-    </script>
-  </body>
+<head>
+  <meta charset="utf-8">
+  <title>faceapi</title>
+</head>
+
+<body>
+  <div id="app">
+  </div>
+  <script src="https://cdn.staticfile.org/vue/2.4.2/vue.min.js"></script>
+  <script src="./dist/face.js" type="module"></script>
+  <script  type="module">
+    import * as face from './dist/face.js'
+    console.log(face)
+    // export default {
+    //   el: "#app",
+    //   data: {
+    //     msg: '1111'
+    //   },
+    //   template: "<face :msgs='msg'></face>",//组件调用   ---------------使用子
+    //   components: { face: face }, //--------------------- 声明子
+    //   mounted() {
+    //     console.log(this)
+    //   }
+    // }
+  </script>
+</body>
+
 </html>

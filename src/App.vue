@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <face></face>
+    <face :msgs="msg"></face>
   </div>
 </template>
 

@@ -3,7 +3,7 @@
   <div class="app-container">
     <div class="warpper">
       <!-- 提示信息 -->
-      <p class="tip">{{tipTxt}}</p>
+      <p class="tip">{{msgs}}{{tipTxt}}</p>
       <div class="photoBox">
         <video
           @play="onPlay($event)"
@@ -20,6 +20,7 @@
       </div>
       <div>
         <img :src="imgSrc" alt="" class="imgSrc">
+        <!-- <img :src="firstfaceImg" alt="" srcset=""> -->
       </div>
     </div>
   </div>
@@ -31,6 +32,7 @@ import * as faceapi from 'face-api.js'
 
 export default {
     name:'Face',
+    props:['msgs'],
     data() {
         return {
             tipTxt: '模型初始化中...',
@@ -53,11 +55,14 @@ export default {
             counter: 0, // 向左或向右的次数,
             last_nose_left: 0,
             last_nose_top: 0,
-            last_dis_eye_norse: 0
+            last_dis_eye_norse: 0,
+            firstfaceImg:'',
+            getPhotoNum:0,//调取getPhotoNum的次数
         }
     },
     mounted() {
         var that = this;
+        console.log(this.$refs.myVideo)
         this.vid = this.$refs.myVideo;
         this.vid_width = this.$refs.myVideo.width;
         this.vid_height = this.$refs.myVideo.height;
@@ -66,6 +71,7 @@ export default {
         this.initFun();
     },
     created() {
+        console.log(this.msgs)
     },
     methods: {
     // 初始化
@@ -78,6 +84,12 @@ export default {
                 faceapi.nets.faceRecognitionNet.loadFromUri('/src/assets/models'),
                 faceapi.nets.faceExpressionNet.loadFromUri('/src/assets/models')
             ]).then(() => {
+                this.tipTxt='模型加载成功，正在检测人脸'
+                navigator.getUserMedia = navigator.getUserMedia ||
+                navigator.webkitGetUserMedia ||
+                navigator.mozGetUserMedia ||
+                navigator.msGetUserMedia;
+
                 navigator.getUserMedia(
                     { video: {}},
                     stream => {
@@ -89,6 +101,9 @@ export default {
                         console.error(err)
                     }
                 );
+            },()=>{
+                this.tipTxt = '模型加载错误，即将重试'
+                this.initFun();
             }); // 载入成功之后唤醒摄像头
         },
         onPlay: async function(event) {
@@ -116,7 +131,10 @@ export default {
                 if (resizedDetections[0].alignedRect.relativeBox.top > 0.55 || resizedDetections[0].alignedRect.relativeBox.left < 0.2 || resizedDetections[0].alignedRect.relativeBox.right > 0.8 || resizedDetections[0].alignedRect.relativeBox.bottom > 0.98) {
                     this.tipTxt = '请将脸移入圆框中间'
                 } else {
-                    this.tipTxt = '请张张嘴巴'
+                    if(this.getPhotoNum==0){
+                        this.getPhoto();
+                    }
+                    this.tipTxt = '请眨眨眼睛'
                     const landmarks = resizedDetections[0].landmarks;
                     const landmarkPositions = landmarks.positions
                     // 或者得到各个轮廓的位置，
@@ -135,9 +153,10 @@ export default {
                         // this.shakeHead(landmarkPositions)
                         // 眨眼睛
                         // this.twinkle(landmarkPositions)
-                    } else if (!this.isTwinkle) {
-                        // this.twinkle(landmarkPositions);
-                    }
+                    } 
+                    //  if (!this.isTwinkle) {
+                    //     this.twinkle(landmarkPositions);
+                    // }
                     faceapi.draw.drawFaceLandmarks(canvas, resizedDetections);
                 }
                 // faceapi.draw.drawDetections(canvas, resizedDetections);
@@ -166,7 +185,7 @@ export default {
             if (this.last_mouth_distance > 0 && mouth_distance > 0 && (Math.abs(this.last_mouth_distance - mouth_distance) > 6) && (Math.abs(this.last_nose_distance_y - nose_distance_y) < 0.6 && Math.abs(this.last_nose_distance_x - nose_distance_x) < 0.6)) {
                 // this.tipTxt='张嘴通过请再眨下眼睛'
                 this.mouthNum++;
-                if (this.mouthNum > 1) {
+                if (this.mouthNum > 2) {
                     console.log('张嘴通过')
                     this.tipTxt = '验证中，请稍等...'
                     this.isOpenMouth = true;
@@ -178,13 +197,26 @@ export default {
         },
         // 截取视频中符合条件的图片
         getPhoto: function() {
+            this.getPhotoNum ++;
             this.overlayCC.clearRect(0, 0, this.overlay.width, this.overlay.height);
             this.overlayCC.drawImage(this.vid, 0, 0, this.overlay.width, this.overlay.height)
             // let dataUrl = overlay.toDataURL('image/jpeg', 1);
             // imgbase64 = dataUrl.replace(/^data:image\/\w+;base64,/, "");
             var snapData = this.overlay.toDataURL('image/png');
             var imgSrc = 'data:image/png;' + snapData;
-            this.imgSrc = imgSrc;
+            if(this.getPhotoNum == 1){
+                this.firstfaceImg = imgSrc
+            }else{
+                this.imgSrc = imgSrc;
+                this.$axios.post('/api',{}).creathen(()=>{
+                    console.log('aaa')
+                    this.axiosSuccess();
+                },()=>{
+                    console.log('请求错误')
+                    this.axiosError();
+                })
+            }
+            
             // 把该图片数据传给后端  做相关校验
         },
         // 判断摇头
@@ -259,21 +291,32 @@ export default {
                 var dis_eye_norse2 = Math.pow((xdiff2 * xdiff2 + ydiff2 * ydiff2), 0.5);
                 // 计算出左右两个眼睛距离同一处鼻尖的距离之和
                 var dis_eye_norse = (dis_eye_norse1 + dis_eye_norse2);
+                console.log(Math.abs(dis_eye_norse,this.last_dis_eye_norse))
                 if (Math.abs(positions[31].x - this.last_nose_left) < 0.5 && Math.abs(positions[31].y - this.last_nose_top) < 0.5) {
-                    if ((Math.abs(dis_eye_norse - this.last_dis_eye_norse) > dis_eye_norse * 1 / 60)) {
+                    // if ((Math.abs(dis_eye_norse - this.last_dis_eye_norse) > 0.8)) {
+                        if(ydiff1>1000){
                         alert('眼睛验证通过')
                         this.getPhoto()
                         this.last_nose_left = 0;
                         this.last_nose_top = 0;
                         this.last_dis_eye_norse = 0;
                         this.lastTime = 0;
+                        this.isTwinkle = true;
                     }
+
                 }
                 this.last_nose_left = positions[31].x;
                 this.last_nose_top = positions[31].y;
                 this.last_dis_eye_norse = dis_eye_norse;
                 this.lastTime = new Date().getTime();
             }
+        },
+        resetFun(){
+            this.last_nose_left = 0;
+            this.last_nose_top = 0;
+            this.last_dis_eye_norse = 0;
+            this.lastTime = 0;
+            this.isTwinkle = false;
         }
     }
 }
