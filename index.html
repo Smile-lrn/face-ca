@@ -3,29 +3,11 @@
 
 <head>
   <meta charset="utf-8">
-  <title>faceapi</title>
+  <title>人脸识别</title>
 </head>
-
 <body>
-  <div id="app">
-  </div>
+  <div id="app"></div>
   <script src="https://cdn.staticfile.org/vue/2.4.2/vue.min.js"></script>
   <script src="./dist/face.js" type="module"></script>
-  <script  type="module">
-    import * as face from './dist/face.js'
-    console.log(face)
-    // export default {
-    //   el: "#app",
-    //   data: {
-    //     msg: '1111'
-    //   },
-    //   template: "<face :msgs='msg'></face>",//组件调用   ---------------使用子
-    //   components: { face: face }, //--------------------- 声明子
-    //   mounted() {
-    //     console.log(this)
-    //   }
-    // }
-  </script>
 </body>
-
 </html>
