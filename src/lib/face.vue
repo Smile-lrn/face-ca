@@ -1,11 +1,11 @@
 <!-- home -->
 <template>
   <div>
-    <div :class="'app-container '+activeName">
+    <div :class="'app-container '+activename">
       <div class="warpper">
         <div class="btnBox">
           <div class="left" @click="closeFaceBox">
-            <img src="../assets/imgs/close.svg" alt srcset />
+            <img src="/src/assets/imgs/close.svg" alt srcset />
           </div>
           <!-- <div class="right" @click="changeVoice">
                 <img src="../assets/imgs/openvoice.svg" alt="" srcset="" v-if="voiceFlag">
@@ -34,7 +34,7 @@
         </div>
       </div>
     </div>
-    <button id="facelogin" @click="faceLogin">人脸登录</button>
+    <!-- <button id="facelogin" @click="faceLogin">人脸登录</button> -->
   </div>
 </template>
 
@@ -44,10 +44,20 @@ import * as faceapi from "face-api.js";
 
 export default {
   name: "Face",
-  props: ["msgs"],
+  props: ["activename",'isrest'],
+  computed:{
+    isreset(){
+      return this.isrest;
+    },
+  },
+  watch:{
+    isreset:function(){
+      this.isreset?this.resetFun():''
+    }
+  },
   data() {
     return {
-      activeName: "",
+      // activeName: "",
       voiceFlag: true, //静音
       tipTxt: "模型初始化中...",
       vid: "",
@@ -76,17 +86,15 @@ export default {
   },
   mounted() {
     var that = this;
-    console.log(this.$refs.myVideo);
     this.vid = this.$refs.myVideo;
     this.vid_width = this.$refs.myVideo.width;
     this.vid_height = this.$refs.myVideo.height;
     this.overlay = this.$refs.overlay;
     this.overlayCC = this.$refs.overlay.getContext("2d");
     this.initFun();
+    console.log(this.activename+'-------------'+this.isrest)
   },
-  created() {
-    console.log(this.msgs);
-  },
+  created() {},
   methods: {
     faceLogin() {
       this.activeName = "active";
@@ -100,7 +108,7 @@ export default {
     },
     //   关闭页面
     closeFaceBox() {
-      this.activeName = "";
+      this.$emit('restActive','')
     },
     // 初始化
     initFun: async function(input) {
@@ -265,16 +273,17 @@ export default {
         this.firstfaceImg = imgSrc;
       } else {
         this.imgSrc = imgSrc;
-        this.$axios.post("/api", {}).then(
-          data => {
-            console.log("aaa");
-            this.axiosSuccess(data);
-          },
-          err => {
-            console.log("请求错误");
-            this.axiosError(err);
-          }
-        );
+        this.$emit('responseFun',imgSrc)
+        // this.$axios.post("/api", {}).then(
+        //   data => {
+        //     console.log("aaa");
+        //     this.axiosSuccess(data);
+        //   },
+        //   err => {
+        //     console.log("请求错误");
+        //     this.axiosError(err);
+        //   }
+        // );
       }
 
       // 把该图片数据传给后端  做相关校验
@@ -371,7 +380,7 @@ export default {
         var dis_eye_norse2 = Math.pow(xdiff2 * xdiff2 + ydiff2 * ydiff2, 0.5);
         // 计算出左右两个眼睛距离同一处鼻尖的距离之和
         var dis_eye_norse = dis_eye_norse1 + dis_eye_norse2;
-        console.log(Math.abs(dis_eye_norse, this.last_dis_eye_norse));
+        // console.log(Math.abs(dis_eye_norse, this.last_dis_eye_norse));
         if (
           Math.abs(positions[31].x - this.last_nose_left) < 0.5 &&
           Math.abs(positions[31].y - this.last_nose_top) < 0.5
