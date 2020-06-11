@@ -13,7 +13,7 @@
           </div>-->
         </div>
         <!-- 提示信息 -->
-        <p class="tip">{{msgs}}{{tipTxt}}</p>
+        <p class="tip">{{tipTxt}}</p>
         <div class="photoBox">
           <video
             @play="onPlay($event)"
@@ -25,12 +25,17 @@
             muted
             autoplay
             webkit-playsinline="true"
+            v-show="!isOpenMouth"
           ></video>
-          <canvas id="overlay" ref="overlay" />
+          <canvas id="overlay" ref="overlay" v-show="!isOpenMouth"></canvas>
+          <span id="hoverTxt" :class="hovertxt?'active':''"  v-show="!isOpenMouth">{{hovertxt}}</span>
         </div>
-        <div>
+        <div style="display:none;">
           <img :src="imgSrc" alt class="imgSrc" />
           <!-- <img :src="firstfaceImg" alt="" srcset=""> -->
+        </div>
+        <div class="safeBox">
+            <img src="/src/assets/imgs/safe.png" alt="" srcset=""><span>信息已加密,仅用于身份认证</span>
         </div>
       </div>
     </div>
@@ -57,6 +62,7 @@ export default {
   },
   data() {
     return {
+      hovertxt:'',
       // activeName: "",
       voiceFlag: true, //静音
       tipTxt: "模型初始化中...",
@@ -167,7 +173,7 @@ export default {
         .withFaceExpressions();
       const resizedDetections = faceapi.resizeResults(detections, displaySize);
       if (resizedDetections.length == 0) {
-        this.tipTxt = "未检测到人脸";
+        this.hovertxt = "未检测到人脸";
         // return
       } else {
         // console.log(resizedDetections[0].alignedRect.relativeBox.bottom)
@@ -178,12 +184,12 @@ export default {
           resizedDetections[0].alignedRect.relativeBox.right > 0.8 ||
           resizedDetections[0].alignedRect.relativeBox.bottom > 0.98
         ) {
-          this.tipTxt = "请将脸移入圆框中间";
+          this.hovertxt = "请将脸对正中间";
         } else {
           if (this.getPhotoNum == 0) {
             this.getPhoto();
           }
-          this.tipTxt = "请眨眨眼睛";
+          this.hovertxt = "请张张嘴巴";
           const landmarks = resizedDetections[0].landmarks;
           const landmarkPositions = landmarks.positions;
           // 或者得到各个轮廓的位置，
@@ -229,9 +235,9 @@ export default {
         Math.abs(nose_distance_y - this.last_nose_distance_y) > 3 &&
         Math.abs(this.last_nose_distance_x - nose_distance_x) > 4
       ) {
-        this.tipTxt = "请保持头部不要晃动";
+        this.hovertxt = "请保持头部不要晃动";
       } else {
-        this.tipTxt = "请张张嘴巴";
+        this.hovertxt = "请张张嘴巴";
       }
       this.last_nose_distance_y = nose_distance_y;
       this.last_nose_distance_x = nose_distance_x;
@@ -274,16 +280,6 @@ export default {
       } else {
         this.imgSrc = imgSrc;
         this.$emit('responseFun',imgSrc)
-        // this.$axios.post("/api", {}).then(
-        //   data => {
-        //     console.log("aaa");
-        //     this.axiosSuccess(data);
-        //   },
-        //   err => {
-        //     console.log("请求错误");
-        //     this.axiosError(err);
-        //   }
-        // );
       }
 
       // 把该图片数据传给后端  做相关校验
@@ -422,7 +418,7 @@ export default {
       }
       this.getPhotoNum = 0;
       this.onPlay();
-    }
+    },
   }
 };
 </script>
@@ -449,8 +445,6 @@ $unitSize: 1/37.5;
     cursor: pointer;
 }
 .app-container {
-  font-family: "Lucida Sans", "Lucida Sans Regular", "Lucida Grande",
-    "Lucida Sans Unicode", Geneva, Verdana, sans-serif;
   background: #fff;
   height: 100vh;
   box-sizing: border-box;
@@ -467,23 +461,23 @@ $unitSize: 1/37.5;
     height: 100%;
     display: flex;
     box-sizing: border-box;
-    padding-top: 30px;
+    // padding-top: 30px;
     flex-direction: column;
-    justify-content: center;
+    // justify-content: center;
     align-items: center;
-    background: rgba(0, 0, 0, 0.6);
+    // background: rgba(0, 0, 0, 0.6);
     .btnBox {
-      position: absolute;
-      top: 0.625rem;
       width: 100%;
-      padding: 0 0.625rem;
-      box-sizing: border-box;
+      height: 1.875rem;
       display: flex;
-      justify-content: space-between;
+      margin-bottom: 0.625rem;
+      padding-left: 0.625rem;
+      padding-top: 0.625rem;
+      box-sizing: border-box;
       img {
         cursor: pointer;
-        width: 28rem * $unitSize;
-        height: 28rem * $unitSize;
+        width: 0.575rem;
+        height: 0.575rem;
       }
       .right img {
         width: 27rem * $unitSize;
@@ -491,20 +485,23 @@ $unitSize: 1/37.5;
       }
     }
     .tip {
-      font-size: 18rem * $unitSize;
-      color: #fff;
+      font-size: 0.4625rem;
+      color:#333;
       margin-bottom: 1.25rem;
       height: 0.625rem;
     }
     .photoBox {
-      width: 5.625rem;
-      height: 5.625rem;
+      width:5.625rem;
+      height:5.625rem;
       border-radius: 50%;
-      border: 2px dashed red;
+      /* border: 2px dashed red; */
+      box-shadow: 0 0 10px rgba(0,0,0,.2);
       box-sizing: border-box;
       position: relative;
       overflow: hidden;
-      margin-bottom: 30px;
+      margin-bottom: 0.9375rem;
+      background: url(/src/assets/imgs/circlebg.png) no-repeat;
+      background-size: cover;
       video,
       canvas {
         position: absolute;
@@ -514,10 +511,47 @@ $unitSize: 1/37.5;
         height: 100%;
         object-fit: cover;
       }
+      
+      #hoverTxt{
+        display: flex;
+        position: absolute;
+        width: 100%;
+        height: 1.5rem;
+        color:#fff;
+        background: rgba(0,0,0,.6);
+        justify-content: center;
+        align-items: center;
+        font-size: 0.4rem;
+        top: -1.5rem;
+        transition: 0.2s;
+        -webkit-transition:0.2s;
+        -moz-transition:0.2s;
+        -ms-transition:0.2s;
+        -o-transition:0.2s;
+        &.active{
+          top: 0 !important;
+          transition: 0.2s;
+          -webkit-transition: 0.2s;
+          -moz-transition: 0.2s;
+          -ms-transition: 0.2s;
+          -o-transition: 0.2s;
+        }
+      }
     }
     .imgSrc {
       width: 6.25rem;
       height: auto;
+    }
+    .safeBox{
+      display: flex;
+      align-items: center;
+      font-size: 0.3rem;
+      color: #999;
+      img{
+        width: 0.5rem;
+        height: 0.5rem;
+        margin-right: 10px;
+      }
     }
   }
 }
