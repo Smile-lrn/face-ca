@@ -1,7 +1,7 @@
 {
   "name": "face-ca",
   "description": "人脸识别",
-  "version": "1.1.0",
+  "version": "1.1.7",
   "author": "Smile-lrn <17839193052@163.com>",
   "license": "MIT",
   "private": false,
@@ -35,6 +35,7 @@
     "node-sass": "^4.14.1",
     "sass-loader": "^7.3.1",
     "scss": "^0.2.4",
+    "url-loader": "^4.1.0",
     "vue-loader": "^13.0.5",
     "vue-template-compiler": "^2.4.4",
     "webpack": "^3.12.0",

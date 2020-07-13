@@ -2,8 +2,8 @@ var path = require('path')
 var webpack = require('webpack')
 
 module.exports = {
-  // entry: './src/lib/index.js',
-  entry: './src/main.js',
+  entry: './src/lib/index.js',
+  // entry: './src/main.js',
   output: {
     path: path.resolve(__dirname, './dist'),
     publicPath: '/dist/',
@@ -43,11 +43,26 @@ module.exports = {
         exclude: /node_modules/
       },
       {
-        test: /\.(png|jpg|gif|svg)$/,
-        loader: 'file-loader',
-        options: {
-          name: '[name].[ext]?[hash]'
-        }
+        test: /\.(jpg|png|gif)$/,
+        use: {
+          loader: 'url-loader',
+          options: {
+            name: '[name]_[hash].[ext]',
+            outputPath: '/src/assets/imgs/',
+            limit: 8192,
+          },
+        },
+      },
+      {
+        test: /\_manifest.json$/,
+        use: {
+          loader: 'url-loader',
+          options: {
+            name: '[name]_[hash].[ext]',
+            outputPath: '/static/models/',
+            limit: 8192,
+          },
+        },
       }
     ]
   },

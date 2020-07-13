@@ -35,7 +35,7 @@
           <!-- <img :src="firstfaceImg" alt="" srcset=""> -->
         </div>
         <div class="safeBox">
-            <img src="/src/assets/imgs/safe.png" alt="" srcset=""><span>信息已加密,仅用于身份认证</span>
+            <img src="../assets/imgs/safe.png" alt="" srcset=""><span>信息已加密,仅用于身份认证</span>
         </div>
       </div>
     </div>
@@ -46,7 +46,8 @@
 <script>
 // 请求接口
 import * as faceapi from "face-api.js";
-
+// import closeImg  from  '/src/assets/imgs/close.svg';
+// import safeImg  from  '/src/assets/imgs/safe.svg';
 export default {
   name: "Face",
   props: ["activename",'isrest'],
@@ -125,7 +126,7 @@ export default {
         // 加载我想要使用的模型 同时对应的json文件和shard文件要处在同一目录 不然读取的时候可能读取不到。当你读取不到的时候你可能会报 SyntaxError: Unexpected token < in JSON at position 0。这点略坑
         faceapi.nets.tinyFaceDetector.loadFromUri("/src/assets/models"),
         faceapi.nets.faceLandmark68Net.loadFromUri("/src/assets/models"),
-        faceapi.nets.faceRecognitionNet.loadFromUri("/src/assets/models"),
+        // faceapi.nets.faceRecognitionNet.loadFromUri("../../static/models"),
         faceapi.nets.faceExpressionNet.loadFromUri("/src/assets/models")
       ]).then(
         () => {
@@ -511,7 +512,7 @@ $unitSize: 1/37.5;
         height: 100%;
         object-fit: cover;
       }
-      
+
       #hoverTxt{
         display: flex;
         position: absolute;
